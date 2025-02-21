@@ -42,6 +42,7 @@ module "ec2" {
   private_subnet_id    = module.network.private_subnet_ids[0]
   public_subnet_id     = module.network.public_subnet_ids[0]
   alb_security_group_id = module.alb.alb_security_group_id
+  spring_security_group_id = module.ec2.spring_security_group_id
   # bastion_security_group_id = module.bastion.bastion_security_group_id
   key_name = var.key_name
 }

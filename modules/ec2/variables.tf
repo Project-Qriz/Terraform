@@ -23,6 +23,11 @@ variable "alb_security_group_id" {
   type        = string
 }
 
+variable "spring_security_group_id" {
+  description = "Spring security group ID"
+  type        = string
+}
+
 # variable "bastion_security_group_id" {
 #   description = "Bastion security group ID"
 #   type        = string
@@ -60,7 +65,7 @@ variable "spring_user_data" {
               dnf install -y htop
               
               # Install Java 11
-              dnf install -y java-17-amazon-corretto
+              dnf install -y java-11-amazon-corretto
               
               # Install and configure Docker
               dnf install -y docker
