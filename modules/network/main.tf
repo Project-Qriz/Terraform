@@ -61,9 +61,10 @@ resource "aws_route_table" "public" {
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
+
   route {
     cidr_block = "0.0.0.0/0"
-    # network_interface_id = var.nat_instance_eni_id
+    network_interface_id = var.nat_instance_eni_id
   }
 
   tags = {

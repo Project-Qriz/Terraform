@@ -11,18 +11,18 @@ module "network" {
   public_subnets = var.public_subnets
   private_subnets = var.private_subnets
   availability_zones = var.availability_zones
-  # nat_instance_eni_id = module.nat.nat_instance_eni_id
+  nat_instance_eni_id = module.nat.nat_instance_eni_id
 }
 
-# module "nat" {
-#   source = "../../modules/nat"
+module "nat" {
+  source = "../../modules/nat"
   
-#   environment = var.environment
-#   vpc_id = module.network.vpc_id
-#   vpc_cidr = var.vpc_cidr
-#   public_subnet_id = module.network.public_subnet_ids[0]
-#   key_name = var.key_name
-# }
+  environment = var.environment
+  vpc_id = module.network.vpc_id
+  vpc_cidr = var.vpc_cidr
+  public_subnet_id = module.network.public_subnet_ids[0]
+  key_name = var.key_name
+}
 
 module "alb" {
   source = "../../modules/alb"

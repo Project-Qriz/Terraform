@@ -22,6 +22,6 @@ variable "availability_zones" {
   type = list(string)
 }
 
-# variable "nat_instance_eni_id" {
-#   type = string
-# }
+variable "nat_instance_eni_id" {
+  type = string
+}
