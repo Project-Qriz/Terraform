@@ -65,7 +65,7 @@ resource "aws_security_group" "flask_sg" {
 
 resource "aws_instance" "spring" {
   ami           = var.ami_id
-  instance_type = var.instance_type
+  instance_type = var.spring_instance_type
   # subnet_id     = var.private_subnet_id
   subnet_id     = var.public_subnet_id
 
@@ -82,7 +82,7 @@ resource "aws_instance" "spring" {
 
 resource "aws_instance" "flask" {
   ami           = var.ami_id
-  instance_type = var.instance_type
+  instance_type = var.flask_instance_type
   # subnet_id     = var.private_subnet_id
   subnet_id     = var.public_subnet_id
 

@@ -44,7 +44,13 @@ variable "key_name" {
   type        = string
 }
 
-variable "instance_type" {
+variable "spring_instance_type" {
+  description = "Instance type"
+  type        = string
+  default     = "t2.small"
+}
+
+variable "flask_instance_type" {
   description = "Instance type"
   type        = string
   default     = "t2.micro"
@@ -72,6 +78,11 @@ variable "spring_user_data" {
               systemctl enable docker
               systemctl start docker
               usermod -a -G docker ec2-user
+
+              # Install docker compose
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+
               EOF
 }
 
