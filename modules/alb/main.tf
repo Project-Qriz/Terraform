@@ -38,7 +38,7 @@ resource "aws_lb" "main" {
 
 resource "aws_lb_target_group" "spring" {
   name        = "${var.environment}-spring-tg"
-  port        = 8080
+  port        = 8081
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "instance"
@@ -63,7 +63,7 @@ resource "aws_lb_target_group" "flask" {
 resource "aws_lb_target_group_attachment" "spring" {
   target_group_arn = aws_lb_target_group.spring.arn
   target_id        = var.spring_instance_id
-  port             = 8080
+  port             = 8081
 }
 
 resource "aws_lb_target_group_attachment" "flask" {

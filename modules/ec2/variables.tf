@@ -8,11 +8,6 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "public_subnet_id" {
-  description = "Public subnet ID"
-  type        = string
-}
-
 variable "private_subnet_id" {
   description = "Private subnet ID"
   type        = string
@@ -28,10 +23,10 @@ variable "spring_security_group_id" {
   type        = string
 }
 
-# variable "bastion_security_group_id" {
-#   description = "Bastion security group ID"
-#   type        = string
-# }
+variable "bastion_security_group_id" {
+  description = "Bastion security group ID"
+  type        = string
+}
 
 variable "ami_id" {
   description = "AMI ID for EC2 instances"

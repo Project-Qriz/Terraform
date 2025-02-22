@@ -36,7 +36,7 @@ resource "aws_security_group" "bastion" {
 
 resource "aws_instance" "bastion" {
   ami           = var.ami_id
-  instance_type = "t3.small"  # Jenkins 때문에 리소스 증설
+  instance_type = "t3.medium"  # Jenkins 때문에 리소스 증설
   subnet_id     = var.public_subnet_id
   key_name      = var.key_name
 
