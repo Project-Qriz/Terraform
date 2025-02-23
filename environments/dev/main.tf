@@ -44,6 +44,7 @@ module "ec2" {
   alb_security_group_id = module.alb.alb_security_group_id
   spring_security_group_id = module.ec2.spring_security_group_id
   bastion_security_group_id = module.bastion.bastion_security_group_id
+  ec2_rds_security_group_id = module.security.ec2_rds_security_group_id
   key_name = var.key_name
 }
 
@@ -54,4 +55,26 @@ module "bastion" {
   vpc_id = module.network.vpc_id
   public_subnet_id = module.network.public_subnet_ids[0]
   key_name = var.key_name
+}
+
+module "rds" {
+  source = "../../modules/rds"
+
+  environment = var.environment
+  vpc_id = module.network.vpc_id
+  private_subnet_ids = module.network.private_subnet_ids
+  spring_security_group_id = module.ec2.spring_security_group_id
+  flask_security_group_id = module.ec2.flask_security_group_id
+  rds_ec2_security_group_id = module.security.rds_ec2_security_group_id
+
+  database_name = var.database_name
+  database_username = var.database_username
+  database_password = var.database_password
+}
+
+module "security" {
+  source = "../../modules/security"
+
+  environment = var.environment
+  vpc_id = module.network.vpc_id
 }

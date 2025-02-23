@@ -68,7 +68,7 @@ resource "aws_instance" "spring" {
   instance_type = var.spring_instance_type
   subnet_id     = var.private_subnet_id
 
-  vpc_security_group_ids = [aws_security_group.spring_sg.id]
+  vpc_security_group_ids = [aws_security_group.spring_sg.id, var.ec2_rds_security_group_id]
   key_name = var.key_name
 
   user_data = var.spring_user_data
@@ -84,7 +84,7 @@ resource "aws_instance" "flask" {
   instance_type = var.flask_instance_type
   subnet_id     = var.private_subnet_id
 
-  vpc_security_group_ids = [aws_security_group.flask_sg.id]
+  vpc_security_group_ids = [aws_security_group.flask_sg.id, var.ec2_rds_security_group_id]
   key_name = var.key_name
   user_data = var.flask_user_data
 

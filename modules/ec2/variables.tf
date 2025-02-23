@@ -28,6 +28,11 @@ variable "bastion_security_group_id" {
   type        = string
 }
 
+variable "ec2_rds_security_group_id" {
+  description = "EC2 RDS security group ID"
+  type        = string
+}
+
 variable "ami_id" {
   description = "AMI ID for EC2 instances"
   type        = string

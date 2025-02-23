@@ -2,32 +2,28 @@ variable "environment" {
   type = string
 }
 
-variable "region" {
+variable "vpc_id" {
   type = string
 }
 
-variable "vpc_cidr" {
+variable "spring_security_group_id" {
   type = string
 }
 
-variable "public_subnets" {
-  type = list(string)
-}
-
-variable "private_subnets" {
-  type = list(string)
-}
-
-variable "availability_zones" {
-  type = list(string)
-}
-
-variable "key_name" {
+variable "flask_security_group_id" {
   type = string
+}
+
+variable "rds_ec2_security_group_id" {
+  type = string
+}
+
+variable "private_subnet_ids" {
+  type = list(string)
 }
 
 variable "database_name" {
-  type = string
+  type = string 
 }
 
 variable "database_username" {
