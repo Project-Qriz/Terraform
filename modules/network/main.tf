@@ -49,7 +49,7 @@ resource "aws_route_table" "public" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    # nat instance에 대한 라우팅은 따로 해줘야 함
+    gateway_id = aws_internet_gateway.main.id
   }
 
   tags = {
@@ -65,6 +65,7 @@ resource "aws_route_table" "private" {
   route {
     cidr_block = "0.0.0.0/0"
     network_interface_id = var.nat_instance_eni_id
+    # nat instance에 대한 라우팅은 따로 해줘야 함
   }
 
   tags = {
