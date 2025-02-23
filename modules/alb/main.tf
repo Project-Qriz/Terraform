@@ -44,7 +44,7 @@ resource "aws_lb_target_group" "spring" {
   target_type = "instance"
 
   health_check {
-    path = "/health"
+    path = "/api/v1/health"
   }
 }
 
