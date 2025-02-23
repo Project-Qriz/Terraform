@@ -13,6 +13,11 @@ variable "vpc_cidr" {
   type        = string
 }
 
+variable "private_subnet_cidr" {
+  description = "CIDR block of the private subnet"
+  type        = string
+}
+
 variable "public_subnet_id" {
   description = "ID of the public subnet where NAT instance will be placed"
   type        = string
@@ -21,7 +26,7 @@ variable "public_subnet_id" {
 variable "nat_ami_id" {
   description = "AMI ID for NAT instance"
   type        = string
-  default     = "ami-0fa42ed59eb46290d" 
+  default     = "ami-01c05ba56d996a2cf" 
 }
 
 variable "instance_type" {
