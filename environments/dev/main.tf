@@ -20,6 +20,7 @@ module "nat" {
   environment = var.environment
   vpc_id = module.network.vpc_id
   vpc_cidr = var.vpc_cidr
+  private_subnet_cidr = var.private_subnets[0]
   public_subnet_id = module.network.public_subnet_ids[0]
   key_name = var.key_name
 }
