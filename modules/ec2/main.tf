@@ -88,6 +88,10 @@ resource "aws_instance" "flask" {
   key_name = var.key_name
   user_data = var.flask_user_data
 
+  root_block_device {
+    volume_size = 30
+  }
+
   tags = {
     Name        = "${var.environment}-flask"
     Environment = var.environment
