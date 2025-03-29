@@ -44,8 +44,8 @@ resource "aws_security_group" "flask_sg" {
   }
 
   ingress {
-    from_port       = 5000
-    to_port         = 5000
+    from_port       = 5001
+    to_port         = 5001
     protocol        = "tcp"
     security_groups = [var.spring_security_group_id]
   }
@@ -89,7 +89,7 @@ resource "aws_instance" "flask" {
   user_data = var.flask_user_data
 
   root_block_device {
-    volume_size = 30
+    volume_size = 100
   }
 
   tags = {
