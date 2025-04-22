@@ -64,7 +64,8 @@ resource "aws_security_group" "flask_sg" {
 }
 
 resource "aws_instance" "spring" {
-  count = var.use_asg ? 0 : 1
+  # ASG를 사용하지 않고 private_subnet_id가 제공된 경우에만 인스턴스 생성
+  count = var.use_asg || var.private_subnet_id == "" ? 0 : 1
 
   ami           = var.ami_id
   instance_type = var.spring_instance_type
@@ -82,7 +83,8 @@ resource "aws_instance" "spring" {
 }
 
 resource "aws_instance" "flask" {
-  count = var.use_asg ? 0 : 1
+  # ASG를 사용하지 않고 private_subnet_id가 제공된 경우에만 인스턴스 생성
+  count = var.use_asg || var.private_subnet_id == "" ? 0 : 1
 
   ami           = var.ami_id
   instance_type = var.flask_instance_type
@@ -113,18 +115,13 @@ resource "aws_launch_template" "spring_template" {
   image_id = var.ami_id
 
   vpc_security_group_ids = [
-    var.spring_security_group_id,
+    aws_security_group.spring_sg.id,
     var.ec2_rds_security_group_id
   ]
 
   key_name = var.key_name
 
-  user_data = base64encode(<<-EOF
-    #!/bin/bash
-    # Spring 애플리케이션 시작 스크립트
-    sudo systemctl start spring-application
-  EOF
-  )
+  user_data = base64encode(var.spring_user_data)
 
   tag_specifications {
     resource_type = "instance"
@@ -171,18 +168,13 @@ resource "aws_launch_template" "flask_template" {
   image_id = var.ami_id
 
   vpc_security_group_ids = [
-    var.flask_security_group_id,
+    aws_security_group.flask_sg.id,
     var.ec2_rds_security_group_id
   ]
 
   key_name = var.key_name
 
-  user_data = base64encode(<<-EOF
-    #!/bin/bash
-    # Flask 애플리케이션 시작 스크립트
-    sudo systemctl start flask-application
-  EOF
-  )
+  user_data = base64encode(var.flask_user_data)
 
   tag_specifications {
     resource_type = "instance"
@@ -224,7 +216,7 @@ resource "aws_autoscaling_group" "flask_asg" {
 resource "aws_lb_target_group" "spring_tg" {
   count = var.use_asg ? 1 : 0
 
-  name = "${var.environment}-spring-tg"
+  name = "${var.environment}-spring-tg-ec2"
   port = 8081
   protocol = "HTTP"
   vpc_id = var.vpc_id
@@ -241,7 +233,7 @@ resource "aws_lb_target_group" "spring_tg" {
 resource "aws_lb_target_group" "flask_tg" {
   count = var.use_asg ? 1 : 0
 
-  name = "${var.environment}-flask-tg"
+  name = "${var.environment}-flask-tg-ec2"
   port = 5001
   protocol = "HTTP"
   vpc_id = var.vpc_id

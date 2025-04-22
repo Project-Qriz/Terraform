@@ -15,11 +15,11 @@
 # }
 
 output "spring_instance_id" {
-  value = var.use_asg ? null : aws_instance.spring_instance[0].id
+  value = var.use_asg || var.private_subnet_id == "" ? null : aws_instance.spring[0].id
 }
 
 output "flask_instance_id" {
-  value = var.use_asg ? null : aws_instance.flask_instance[0].id
+  value = var.use_asg || var.private_subnet_id == ""? null : aws_instance.flask[0].id
 }
 
 output "spring_target_group_arns" {

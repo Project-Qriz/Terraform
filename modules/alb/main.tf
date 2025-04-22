@@ -44,9 +44,10 @@ resource "aws_lb" "main" {
 }
 
 resource "aws_lb_target_group" "spring" {
-  count = var.spring_target_group_arns == null || length(var.spring_target_group_arns) == 0 ? 1 : 0
+  # 타겟 그룹은 항상 생성하되, ASG에서 제공하는 타겟 그룹이 있으면 사용하지 않음
+  count = 1
 
-  name        = "${var.environment}-spring-tg"
+  name        = "${var.environment}-spring-tg-alb"
   port        = 8081
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -58,8 +59,11 @@ resource "aws_lb_target_group" "spring" {
 }
 
 resource "aws_lb_target_group" "flask" {
-  name        = "${var.environment}-flask-tg"
-  port        = 5000
+  # 타겟 그룹은 항상 생성하되, ASG에서 제공하는 타겟 그룹이 있으면 사용하지 않음
+  count = 1
+
+  name        = "${var.environment}-flask-tg-alb"
+  port        = 5001
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "instance"
@@ -70,17 +74,21 @@ resource "aws_lb_target_group" "flask" {
 }
 
 resource "aws_lb_target_group_attachment" "spring" {
-  count = var.spring_instance_id != "" ? 1 : 0
+  # var.spring_instance_id가 null이 아니고 빈 문자열도 아닐 때만 생성
+  count = var.spring_instance_id != null && var.spring_instance_id != "" ? 1 : 0
 
-  target_group_arn = aws_lb_target_group.spring[0].arn
+  target_group_arn = aws_lb_target_group.spring[0].arn  # 인덱스 없음
   target_id        = var.spring_instance_id
   port             = 8081
 }
 
 resource "aws_lb_target_group_attachment" "flask" {
-  target_group_arn = aws_lb_target_group.flask.arn
+  # var.flask_instance_id가 null이 아니고 빈 문자열도 아닐 때만 생성
+  count = var.flask_instance_id != null && var.flask_instance_id != "" ? 1 : 0
+
+  target_group_arn = aws_lb_target_group.flask[0].arn  # 인덱스 없음
   target_id        = var.flask_instance_id
-  port             = 5000
+  port             = 5001
 }
 
 resource "aws_lb_listener" "http" {
@@ -90,7 +98,8 @@ resource "aws_lb_listener" "http" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.spring.arn
+    # ASG 타겟 그룹이 있으면 사용, 없으면 기본 타겟 그룹 사용
+    target_group_arn = length(var.spring_target_group_arns) > 0 ? var.spring_target_group_arns[0] : aws_lb_target_group.spring[0].arn
   }
 }
 
@@ -103,7 +112,8 @@ resource "aws_lb_listener_rule" "spring_rule" {
 
   action {
     type = "forward"
-    target_group_arn = var.spring_target_group_arns != null && length(var.spring_target_group_arns) > 0 ? var.spring_target_group_arns[0] : aws_lb_target_group.spring[0].arn
+    # ASG 타겟 그룹이 있으면 사용, 없으면 기본 타겟 그룹 사용
+    target_group_arn = length(var.spring_target_group_arns) > 0 ? var.spring_target_group_arns[0] : aws_lb_target_group.spring[0].arn
   }
 
   condition {

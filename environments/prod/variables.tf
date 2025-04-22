@@ -52,3 +52,9 @@ variable "asg_desired_capacity" {
   type = number
   description = "Desired capacity of the auto scaling group"
 }
+
+variable "use_asg" {
+  type = bool
+  description = "Whether to use Auto Scaling Group"
+  default     = true
+}

@@ -31,12 +31,13 @@ module "alb" {
   environment        = var.environment
   vpc_id            = module.network.vpc_id
   public_subnet_ids = module.network.public_subnet_ids
-  spring_instance_id = module.ec2.spring_instance_id
-  flask_instance_id  = module.ec2.flask_instance_id
 
-  # prod 환경에서는 인스턴스 ID 대신 ASG로 변경
-  spring_target_group_arns = module.ec2.spring_target_group_arns
-  flask_target_group_arns = module.ec2.flask_target_group_arns
+  # use_asg 플래그에 따라 조건부 전달
+  spring_instance_id = var.use_asg ? null : module.ec2.spring_instance_id
+  flask_instance_id  = var.use_asg ? null : module.ec2.flask_instance_id
+
+  spring_target_group_arns = var.use_asg ? module.ec2.spring_target_group_arns : []
+  flask_target_group_arns  = var.use_asg ? module.ec2.flask_target_group_arns : []
 }
 
 module "ec2" {
@@ -54,7 +55,7 @@ module "ec2" {
   min_size = var.asg_min_size
   max_size = var.asg_max_size
   desired_capacity = var.asg_desired_capacity
-  use_asg = true  # ASG 사용 여부 플래그
+  use_asg = var.use_asg  # ASG 사용 여부 플래그
 }
 
 module "bastion" {

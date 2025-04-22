@@ -11,6 +11,7 @@ variable "vpc_id" {
 variable "private_subnet_id" {
   description = "Private subnet ID"
   type        = string
+  default = ""  # Optional
 }
 
 variable "alb_security_group_id" {
@@ -117,12 +118,6 @@ variable "private_subnet_ids" {
   type = list(string)
   description = "IDs of private subnets where instances will be deployed"
   default = []
-}
-
-variable "private_subnet_id" {
-  type = string
-  description = "ID of private subnet where instance will be deployed"
-  default = ""
 }
 
 variable "use_asg" {

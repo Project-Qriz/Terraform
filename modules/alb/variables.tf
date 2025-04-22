@@ -16,11 +16,13 @@ variable "public_subnet_ids" {
 variable "spring_instance_id" {
   description = "Spring EC2 instance ID"
   type        = string
+  default = ""
 }
 
 variable "flask_instance_id" {
   description = "Flask EC2 instance ID"
   type        = string
+  default = ""
 }
 
 ### Prod ###
