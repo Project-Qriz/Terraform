@@ -34,3 +34,40 @@ resource "aws_db_instance" "mysql" {
     Environment = "${var.environment}"
   }
 }
+
+### Prod ###
+resource "aws_db_instance" "database" {
+  identifier = "${var.environment}-database"
+  instance_class = "db.t3.micro"
+  allocated_storage = 20
+  engine = "mysql"
+  engine_version = "8.0"
+
+  db_name = var.database_name
+  username = var.database_username
+  password = var.database_password
+
+  db_subnet_group_name = aws_db_subnet_group.database.name
+  vpc_security_group_ids = [ aws_security_group.rds_sg.id, var.rds_ec2_security_group_id ]
+  skip_final_snapshot = true
+  multi_az = var.multi_az
+
+  tags = {
+    Name = "${var.environment}-database"
+  }
+}
+
+# Read Replica for production
+resource "aws_db_instance" "replica" {
+  count = var.create_replica ? 1 : 0
+
+  identifier = "${var.environment}-database-replica"
+  replicate_source_db = aws_db_instance.database.identifier
+  instance_class = "db.t3.micro"
+  vpc_security_group_ids = [ aws_security_group.rds_sg.id, var.rds_ec2_security_group_id ]
+  skip_final_snapshot = true
+
+  tags = {
+    Name = "${var.environment}-database-replica"
+  }
+}

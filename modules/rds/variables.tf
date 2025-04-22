@@ -33,3 +33,16 @@ variable "database_username" {
 variable "database_password" {
   type = string
 }
+
+### Prod ###
+variable "multi_az" {
+  type = bool
+  description = "Specifies if the RDS instance is multi-AZ"
+  default     = false
+}
+
+variable "create_replica" {
+  type        = bool
+  description = "Whether to create a read replica"
+  default     = false
+}

@@ -44,6 +44,8 @@ resource "aws_lb" "main" {
 }
 
 resource "aws_lb_target_group" "spring" {
+  count = var.spring_target_group_arns == null || length(var.spring_target_group_arns) == 0 ? 1 : 0
+
   name        = "${var.environment}-spring-tg"
   port        = 8081
   protocol    = "HTTP"
@@ -68,7 +70,9 @@ resource "aws_lb_target_group" "flask" {
 }
 
 resource "aws_lb_target_group_attachment" "spring" {
-  target_group_arn = aws_lb_target_group.spring.arn
+  count = var.spring_instance_id != "" ? 1 : 0
+
+  target_group_arn = aws_lb_target_group.spring[0].arn
   target_id        = var.spring_instance_id
   port             = 8081
 }
@@ -87,5 +91,24 @@ resource "aws_lb_listener" "http" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.spring.arn
+  }
+}
+
+### Prod ###
+
+# 리스너 규칙 업데이트
+resource "aws_lb_listener_rule" "spring_rule" {
+  listener_arn = aws_lb_listener.http.arn
+  priority = 100
+
+  action {
+    type = "forward"
+    target_group_arn = var.spring_target_group_arns != null && length(var.spring_target_group_arns) > 0 ? var.spring_target_group_arns[0] : aws_lb_target_group.spring[0].arn
+  }
+
+  condition {
+    path_pattern {
+      values = [ "/api/*" ]
+    }
   }
 }

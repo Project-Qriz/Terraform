@@ -22,3 +22,16 @@ variable "flask_instance_id" {
   description = "Flask EC2 instance ID"
   type        = string
 }
+
+### Prod ###
+variable "spring_target_group_arns" {
+  type = list(string)
+  description = "ARNs of the Spring target groups"
+  default = []
+}
+
+variable "flask_target_group_arns" {
+  type = list(string)
+  description = "ARNs of the Flask target groups"
+  default = []
+}

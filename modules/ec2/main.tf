@@ -64,6 +64,8 @@ resource "aws_security_group" "flask_sg" {
 }
 
 resource "aws_instance" "spring" {
+  count = var.use_asg ? 0 : 1
+
   ami           = var.ami_id
   instance_type = var.spring_instance_type
   subnet_id     = var.private_subnet_id
@@ -80,6 +82,8 @@ resource "aws_instance" "spring" {
 }
 
 resource "aws_instance" "flask" {
+  count = var.use_asg ? 0 : 1
+
   ami           = var.ami_id
   instance_type = var.flask_instance_type
   subnet_id     = var.private_subnet_id
@@ -95,5 +99,158 @@ resource "aws_instance" "flask" {
   tags = {
     Name        = "${var.environment}-flask"
     Environment = var.environment
+  }
+}
+
+### Prod ###
+
+# Launch Template for Spring Application
+resource "aws_launch_template" "spring_template" {
+  count = var.use_asg ? 1 : 0
+
+  name_prefix = "${var.environment}-spring-"
+  instance_type = var.spring_instance_type
+  image_id = var.ami_id
+
+  vpc_security_group_ids = [
+    var.spring_security_group_id,
+    var.ec2_rds_security_group_id
+  ]
+
+  key_name = var.key_name
+
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    # Spring 애플리케이션 시작 스크립트
+    sudo systemctl start spring-application
+  EOF
+  )
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "${var.environment}-spring-instance"
+    }
+  }
+}
+
+# Auto Scaling Group for Spring Application
+resource "aws_autoscaling_group" "spring_asg" {
+  count = var.use_asg ? 1 : 0
+
+  name = "${var.environment}-spring-asg"
+  min_size = var.min_size
+  max_size = var.max_size
+  desired_capacity = var.desired_capacity
+  vpc_zone_identifier = var.private_subnet_ids
+
+  launch_template {
+    id = aws_launch_template.spring_template[0].id
+    version = "$Latest"
+  }
+
+  target_group_arns = [ aws_lb_target_group.spring_tg[0].arn ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tag {
+    key = "Name"
+    value = "${var.environment}-spring-instance"
+    propagate_at_launch = true
+  }
+}
+
+# Launch Template for Flask Application
+resource "aws_launch_template" "flask_template" {
+  count = var.use_asg ? 1 : 0
+
+  name_prefix = "${var.environment}-flask-"
+  instance_type = var.flask_instance_type
+  image_id = var.ami_id
+
+  vpc_security_group_ids = [
+    var.flask_security_group_id,
+    var.ec2_rds_security_group_id
+  ]
+
+  key_name = var.key_name
+
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    # Flask 애플리케이션 시작 스크립트
+    sudo systemctl start flask-application
+  EOF
+  )
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "${var.environment}-flask-instance"
+    }
+  }
+}
+
+# Auto Scaling Group for Flask Application
+resource "aws_autoscaling_group" "flask_asg" {
+  count = var.use_asg ? 1 : 0
+
+  name = "${var.environment}-flask-asg"
+  min_size = var.min_size
+  max_size = var.max_size
+  desired_capacity = var.desired_capacity
+  vpc_zone_identifier = var.private_subnet_ids
+
+  launch_template {
+    id = aws_launch_template.flask_template[0].id
+    version = "$Latest"
+  }
+
+  target_group_arns = [ aws_lb_target_group.flask_tg[0].arn ]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tag {
+    key = "Name"
+    value = "${var.environment}-flask-instance"
+    propagate_at_launch = true
+  }
+}
+
+# Target Groups for ALB
+resource "aws_lb_target_group" "spring_tg" {
+  count = var.use_asg ? 1 : 0
+
+  name = "${var.environment}-spring-tg"
+  port = 8081
+  protocol = "HTTP"
+  vpc_id = var.vpc_id
+
+  health_check {
+    path = "/api/health"
+    interval = 30
+    timeout = 5
+    healthy_threshold = 2
+    unhealthy_threshold = 2
+  }
+}
+
+resource "aws_lb_target_group" "flask_tg" {
+  count = var.use_asg ? 1 : 0
+
+  name = "${var.environment}-flask-tg"
+  port = 5001
+  protocol = "HTTP"
+  vpc_id = var.vpc_id
+
+  health_check {
+    path = "/health"
+    interval = 30
+    timeout = 5
+    healthy_threshold = 2
+    unhealthy_threshold = 2
   }
 }

@@ -23,6 +23,11 @@ variable "spring_security_group_id" {
   type        = string
 }
 
+variable "flask_security_group_id" {
+  description = "Flask security group ID"
+  type        = string
+}
+
 variable "bastion_security_group_id" {
   description = "Bastion security group ID"
   type        = string
@@ -104,4 +109,42 @@ variable "flask_user_data" {
               systemctl start docker
               usermod -a -G docker ec2-user
               EOF
+}
+
+### Prod ### 
+
+variable "private_subnet_ids" {
+  type = list(string)
+  description = "IDs of private subnets where instances will be deployed"
+  default = []
+}
+
+variable "private_subnet_id" {
+  type = string
+  description = "ID of private subnet where instance will be deployed"
+  default = ""
+}
+
+variable "use_asg" {
+  type = bool
+  description = "Whether to use Auto Scaling Group"
+  default = false
+}
+
+variable "min_size" {
+  type = number
+  description = "Minimum size of the auto scaling group"
+  default = 1
+}
+
+variable "max_size" {
+  type = number
+  description = "Maximum size of the auto scaling group"
+  default = 1
+}
+
+variable "desired_capacity" {
+  type = number
+  description = "Desired capacity of the auto scaling group"
+  default = 1
 }
