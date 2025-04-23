@@ -178,8 +178,8 @@ variable "spring_user_data" {
               fi
               
               # 최신 이미지 가져오기 및 실행
-              docker pull 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/api:latest
-              docker run -d --name backend-container -p 8081:8081 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/api:latest
+              docker pull 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/api:main
+              docker run -d --name backend-container -p 8081:8081 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/api:main
               EOF
 }
 
@@ -210,7 +210,7 @@ variable "flask_user_data" {
               fi
               
               # 최신 이미지 가져오기 및 실행
-              docker pull 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/dkt:latest
-              docker run -d --name dkt-container -p 5001:5001 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/dkt:latest
+              docker pull 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/dkt:main
+              docker run -d --name dkt-container -p 5001:5001 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/dkt:main
               EOF
 }
