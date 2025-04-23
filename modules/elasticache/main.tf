@@ -30,7 +30,7 @@ resource "aws_elasticache_subnet_group" "redis" {
 
 resource "aws_elasticache_parameter_group" "redis" {
   name   = "${var.environment}-redis-params"
-  family = "redis6.x"
+  family = "redis7"
 
   parameter {
     name  = "maxmemory-policy"
