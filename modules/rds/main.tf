@@ -56,6 +56,7 @@ resource "aws_db_instance" "replica" {
 
   vpc_security_group_ids = [ var.rds_ec2_security_group_id ]
   skip_final_snapshot = true
+  storage_encrypted = true
 
   depends_on = [ aws_db_instance.mysql ]
 

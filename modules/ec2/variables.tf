@@ -62,55 +62,55 @@ variable "flask_instance_type" {
   default     = "t2.micro"
 }
 
-variable "spring_user_data" {
-  description = "User data script"
-  type        = string
-  default     = <<-EOF
-              #!/bin/bash
-              # System update
-              dnf update -y
+# variable "spring_user_data" {
+#   description = "User data script"
+#   type        = string
+#   default     = <<-EOF
+#               #!/bin/bash
+#               # System update
+#               dnf update -y
               
-              # Install basic tools
-              dnf install -y git
-              dnf install -y wget
-              dnf install -y vim
-              dnf install -y htop
+#               # Install basic tools
+#               dnf install -y git
+#               dnf install -y wget
+#               dnf install -y vim
+#               dnf install -y htop
               
-              # Install Java 11
-              dnf install -y java-11-amazon-corretto
+#               # Install Java 11
+#               dnf install -y java-11-amazon-corretto
               
-              # Install and configure Docker
-              dnf install -y docker
-              systemctl enable docker
-              systemctl start docker
-              usermod -a -G docker ec2-user
+#               # Install and configure Docker
+#               dnf install -y docker
+#               systemctl enable docker
+#               systemctl start docker
+#               usermod -a -G docker ec2-user
 
-              # Install docker compose
-              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
+#               # Install docker compose
+#               sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+#               sudo chmod +x /usr/local/bin/docker-compose
 
-              EOF
-}
+#               EOF
+# }
 
-variable "flask_user_data" {
-  description = "User data script"
-  type        = string
-  default     = <<-EOF
-              #!/bin/bash
-              # System update
-              dnf update -y
+# variable "flask_user_data" {
+#   description = "User data script"
+#   type        = string
+#   default     = <<-EOF
+#               #!/bin/bash
+#               # System update
+#               dnf update -y
 
-              # Install Python tools
-              dnf install -y python3-pip
-              dnf install -y python3-devel
+#               # Install Python tools
+#               dnf install -y python3-pip
+#               dnf install -y python3-devel
               
-              # Install and configure Docker
-              dnf install -y docker
-              systemctl enable docker
-              systemctl start docker
-              usermod -a -G docker ec2-user
-              EOF
-}
+#               # Install and configure Docker
+#               dnf install -y docker
+#               systemctl enable docker
+#               systemctl start docker
+#               usermod -a -G docker ec2-user
+#               EOF
+# }
 
 ### Prod ### 
 
@@ -142,4 +142,75 @@ variable "desired_capacity" {
   type = number
   description = "Desired capacity of the auto scaling group"
   default = 1
+}
+
+variable "spring_user_data" {
+  description = "User data script for Spring instances"
+  type        = string
+  default     = <<-EOF
+              #!/bin/bash
+              # System update
+              dnf update -y
+              
+              # Install basic tools
+              dnf install -y git wget vim htop
+              
+              # Install Java 11
+              dnf install -y java-11-amazon-corretto
+              
+              # Install and configure Docker
+              dnf install -y docker
+              systemctl enable docker
+              systemctl start docker
+              usermod -a -G docker ec2-user
+
+              # Install docker compose
+              curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              chmod +x /usr/local/bin/docker-compose
+              
+              # ECR 로그인
+              aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com
+              
+              # 기존 컨테이너 정리 (있는 경우)
+              if docker ps -a | grep -q backend-container; then
+                docker stop backend-container
+                docker rm backend-container
+              fi
+              
+              # 최신 이미지 가져오기 및 실행
+              docker pull 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/api:latest
+              docker run -d --name backend-container -p 8081:8081 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/api:latest
+              EOF
+}
+
+variable "flask_user_data" {
+  description = "User data script for Flask instances"
+  type        = string
+  default     = <<-EOF
+              #!/bin/bash
+              # System update
+              dnf update -y
+
+              # Install Python tools
+              dnf install -y python3-pip python3-devel
+              
+              # Install and configure Docker
+              dnf install -y docker
+              systemctl enable docker
+              systemctl start docker
+              usermod -a -G docker ec2-user
+              
+              # ECR 로그인
+              aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com
+              
+              # 기존 컨테이너 정리 (있는 경우)
+              if docker ps -a | grep -q dkt-container; then
+                docker stop dkt-container
+                docker rm dkt-container
+              fi
+              
+              # 최신 이미지 가져오기 및 실행
+              docker pull 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/dkt:latest
+              docker run -d --name dkt-container -p 5001:5001 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com/qriz/dkt:latest
+              EOF
 }
