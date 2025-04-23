@@ -91,3 +91,19 @@ module "security" {
   environment = var.environment
   vpc_id = module.network.vpc_id
 }
+
+module "elasticache" {
+  source = "../../modules/elasticache"
+  
+  environment = var.environment
+  vpc_id = module.network.vpc_id
+  private_subnet_ids = module.network.private_subnet_ids
+  app_security_group_ids = [
+    module.ec2.spring_security_group_id,
+    module.ec2.flask_security_group_id
+  ]
+  
+  # 옵션 파라미터
+  node_type = var.elasticache_node_type
+  snapshot_retention_days = var.elasticache_snapshot_retention_days
+}

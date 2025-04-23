@@ -120,8 +120,9 @@ resource "aws_launch_template" "spring_template" {
   ]
 
   key_name = var.key_name
-
   user_data = base64encode(var.spring_user_data)
+
+  update_default_version = true
 
   tag_specifications {
     resource_type = "instance"
@@ -143,7 +144,7 @@ resource "aws_autoscaling_group" "spring_asg" {
 
   launch_template {
     id = aws_launch_template.spring_template[0].id
-    version = "$Latest"
+    version = "$Default"
   }
 
   target_group_arns = [ aws_lb_target_group.spring_tg[0].arn ]
@@ -173,8 +174,9 @@ resource "aws_launch_template" "flask_template" {
   ]
 
   key_name = var.key_name
-
   user_data = base64encode(var.flask_user_data)
+
+  update_default_version = true
 
   tag_specifications {
     resource_type = "instance"
@@ -196,7 +198,7 @@ resource "aws_autoscaling_group" "flask_asg" {
 
   launch_template {
     id = aws_launch_template.flask_template[0].id
-    version = "$Latest"
+    version = "$Default"
   }
 
   target_group_arns = [ aws_lb_target_group.flask_tg[0].arn ]

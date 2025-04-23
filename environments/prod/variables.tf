@@ -58,3 +58,16 @@ variable "use_asg" {
   description = "Whether to use Auto Scaling Group"
   default     = true
 }
+
+### Elasticache ###
+variable "elasticache_node_type" {
+  description = "Elasticache node type"
+  type        = string
+  default     = "cache.t4g.micro"
+}
+
+variable "elasticache_snapshot_retention_days" {
+  description = "Number of days to retain Redis snapshots"
+  type        = number
+  default     = 1
+}
