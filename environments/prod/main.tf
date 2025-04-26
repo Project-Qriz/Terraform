@@ -32,12 +32,11 @@ module "alb" {
   vpc_id            = module.network.vpc_id
   public_subnet_ids = module.network.public_subnet_ids
 
-  # use_asg 플래그에 따라 조건부 전달
-  spring_instance_id = var.use_asg ? null : module.ec2.spring_instance_id
-  flask_instance_id  = var.use_asg ? null : module.ec2.flask_instance_id
-
-  spring_target_group_arns = var.use_asg ? module.ec2.spring_target_group_arns : []
-  flask_target_group_arns  = var.use_asg ? module.ec2.flask_target_group_arns : []
+  # 운영 환경에서는 개별 인스턴스 ID 대신 ASG 대상 그룹 사용
+  spring_instance_id = ""
+  flask_instance_id  = ""
+  spring_target_group_arns = module.ec2.spring_target_group_arns
+  flask_target_group_arns  = module.ec2.flask_target_group_arns
 }
 
 module "ec2" {
@@ -52,6 +51,8 @@ module "ec2" {
   bastion_security_group_id = module.bastion.bastion_security_group_id
   ec2_rds_security_group_id = module.security.ec2_rds_security_group_id
   key_name = var.key_name
+
+  # Prod
   min_size = var.asg_min_size
   max_size = var.asg_max_size
   desired_capacity = var.asg_desired_capacity
@@ -90,6 +91,13 @@ module "security" {
 
   environment = var.environment
   vpc_id = module.network.vpc_id
+}
+
+# 모델 저장소용 S3 모듈
+module "s3" {
+  source = "../../modules/s3"
+  
+  environment = var.environment
 }
 
 # module "elasticache" {

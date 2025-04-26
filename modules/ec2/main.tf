@@ -1,3 +1,11 @@
+# 로컬 변수 정의
+locals {
+  # 단일 서브넷 ID가 제공된 경우와 여러 서브넷 ID가 제공된 경우를 처리
+  subnet_ids = length(var.private_subnet_ids) > 0 ? var.private_subnet_ids : [var.private_subnet_id]
+  # ASG 사용 여부 결정 (명시적으로 설정되거나 운영 환경인 경우)
+  use_asg = var.use_asg || var.environment == "prod"
+}
+
 resource "aws_security_group" "spring_sg" {
   name        = "${var.environment}-spring-sg"
   description = "Security group for spring"
@@ -64,8 +72,8 @@ resource "aws_security_group" "flask_sg" {
 }
 
 resource "aws_instance" "spring" {
-  # ASG를 사용하지 않고 private_subnet_id가 제공된 경우에만 인스턴스 생성
-  count = var.use_asg || var.private_subnet_id == "" ? 0 : 1
+  # ASG를 사용하지 않는 경우에만 생성
+  count = local.use_asg ? 0 : 1
 
   ami           = var.ami_id
   instance_type = var.spring_instance_type
@@ -83,8 +91,8 @@ resource "aws_instance" "spring" {
 }
 
 resource "aws_instance" "flask" {
-  # ASG를 사용하지 않고 private_subnet_id가 제공된 경우에만 인스턴스 생성
-  count = var.use_asg || var.private_subnet_id == "" ? 0 : 1
+  # ASG를 사용하지 않는 경우에만 생성
+  count = local.use_asg ? 0 : 1
 
   ami           = var.ami_id
   instance_type = var.flask_instance_type
@@ -108,7 +116,7 @@ resource "aws_instance" "flask" {
 
 # Launch Template for Spring Application
 resource "aws_launch_template" "spring_template" {
-  count = var.use_asg ? 1 : 0
+  count = local.use_asg ? 1 : 0
 
   name_prefix = "${var.environment}-spring-"
   instance_type = var.spring_instance_type
@@ -134,7 +142,7 @@ resource "aws_launch_template" "spring_template" {
 
 # Auto Scaling Group for Spring Application
 resource "aws_autoscaling_group" "spring_asg" {
-  count = var.use_asg ? 1 : 0
+  count = local.use_asg ? 1 : 0
 
   name = "${var.environment}-spring-asg"
   min_size = var.min_size
@@ -162,7 +170,7 @@ resource "aws_autoscaling_group" "spring_asg" {
 
 # Launch Template for Flask Application
 resource "aws_launch_template" "flask_template" {
-  count = var.use_asg ? 1 : 0
+  count = local.use_asg ? 1 : 0
 
   name_prefix = "${var.environment}-flask-"
   instance_type = var.flask_instance_type
@@ -188,7 +196,7 @@ resource "aws_launch_template" "flask_template" {
 
 # Auto Scaling Group for Flask Application
 resource "aws_autoscaling_group" "flask_asg" {
-  count = var.use_asg ? 1 : 0
+  count = local.use_asg ? 1 : 0
 
   name = "${var.environment}-flask-asg"
   min_size = var.min_size
@@ -216,7 +224,7 @@ resource "aws_autoscaling_group" "flask_asg" {
 
 # Target Groups for ALB
 resource "aws_lb_target_group" "spring_tg" {
-  count = var.use_asg ? 1 : 0
+  count = local.use_asg ? 1 : 0
 
   name = "${var.environment}-spring-tg-ec2"
   port = 8081
@@ -233,7 +241,7 @@ resource "aws_lb_target_group" "spring_tg" {
 }
 
 resource "aws_lb_target_group" "flask_tg" {
-  count = var.use_asg ? 1 : 0
+  count = local.use_asg ? 1 : 0
 
   name = "${var.environment}-flask-tg-ec2"
   port = 5001

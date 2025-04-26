@@ -33,6 +33,10 @@ module "alb" {
   public_subnet_ids = module.network.public_subnet_ids
   spring_instance_id = module.ec2.spring_instance_id
   flask_instance_id  = module.ec2.flask_instance_id
+
+  # 개발 환경에서는 ASG 대상 그룹이 없으므로 빈 값 전달
+  spring_target_group_arns = []
+  flask_target_group_arns  = []
 }
 
 module "ec2" {
@@ -43,6 +47,7 @@ module "ec2" {
   private_subnet_id    = module.network.private_subnet_ids[0]
   alb_security_group_id = module.alb.alb_security_group_id
   spring_security_group_id = module.ec2.spring_security_group_id
+  flask_security_group_id = module.ec2.flask_security_group_id
   bastion_security_group_id = module.bastion.bastion_security_group_id
   ec2_rds_security_group_id = module.security.ec2_rds_security_group_id
   key_name = var.key_name
@@ -70,6 +75,9 @@ module "rds" {
   database_name = var.database_name
   database_username = var.database_username
   database_password = var.database_password
+
+  multi_az = false
+  create_replica = false
 }
 
 module "security" {
@@ -77,4 +85,11 @@ module "security" {
 
   environment = var.environment
   vpc_id = module.network.vpc_id
+}
+
+# 모델 저장소를 위한 S3 모듈 추가
+module "s3" {
+  source = "../../modules/s3"
+  
+  environment = var.environment
 }
