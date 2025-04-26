@@ -26,7 +26,7 @@ resource "aws_s3_bucket_public_access_block" "model_access" {
   restrict_public_buckets = true
 }
 
-# 수명 주기 정책 (오래된 버전 관리)
+# 수명 주기 정책
 resource "aws_s3_bucket_lifecycle_configuration" "model_lifecycle" {
   bucket = aws_s3_bucket.model_storage.id
 
@@ -34,8 +34,18 @@ resource "aws_s3_bucket_lifecycle_configuration" "model_lifecycle" {
     id     = "archive-old-versions"
     status = "Enabled"
 
+    # filter 추가 (모든 객체에 적용)
+    filter {
+      prefix = ""
+    }
+
     noncurrent_version_expiration {
       noncurrent_days = 90
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 60
+      storage_class = "GLACIER"
     }
 
     noncurrent_version_transition {
