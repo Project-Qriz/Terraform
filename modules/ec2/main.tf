@@ -47,7 +47,6 @@ resource "aws_security_group" "flask_sg" {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [var.bastion_security_group_id]
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -55,7 +54,7 @@ resource "aws_security_group" "flask_sg" {
     from_port       = 5001
     to_port         = 5001
     protocol        = "tcp"
-    security_groups = [var.spring_security_group_id]
+    security_groups = [var.spring_security_group_id, var.alb_security_group_id]
   }
 
   egress {
@@ -84,6 +83,8 @@ resource "aws_instance" "spring" {
 
   user_data = var.spring_user_data
 
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+
   tags = {
     Name        = "${var.environment}-spring"
     Environment = var.environment
@@ -101,6 +102,8 @@ resource "aws_instance" "flask" {
   vpc_security_group_ids = [aws_security_group.flask_sg.id, var.ec2_rds_security_group_id]
   key_name = var.key_name
   user_data = var.flask_user_data
+
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
 
   root_block_device {
     volume_size = 100
@@ -131,6 +134,10 @@ resource "aws_launch_template" "spring_template" {
   user_data = base64encode(var.spring_user_data)
 
   update_default_version = true
+
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2_profile.name
+  }
 
   tag_specifications {
     resource_type = "instance"
@@ -185,6 +192,20 @@ resource "aws_launch_template" "flask_template" {
   user_data = base64encode(var.flask_user_data)
 
   update_default_version = true
+
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2_profile.name
+  }
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      volume_size = 20  # 16GB
+      volume_type = "gp3"
+      delete_on_termination = true
+    }
+  }
 
   tag_specifications {
     resource_type = "instance"
@@ -255,4 +276,62 @@ resource "aws_lb_target_group" "flask_tg" {
     healthy_threshold = 2
     unhealthy_threshold = 2
   }
+}
+
+### ECR 접근을 위한 EC2 IAM Role ###
+# IAM 역할 생성
+resource "aws_iam_role" "ec2_role" {
+  name = "${var.environment}-ec2-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.environment}-ec2-role"
+    Environment = var.environment
+  }
+}
+
+# ECR 접근 정책 생성
+resource "aws_iam_policy" "ecr_policy" {
+  name        = "${var.environment}-ecr-policy"
+  description = "Policy for ECR access"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# 역할에 정책 연결
+resource "aws_iam_role_policy_attachment" "ecr_policy_attachment" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.ecr_policy.arn
+}
+
+# EC2 인스턴스 프로필 생성
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "${var.environment}-ec2-profile"
+  role = aws_iam_role.ec2_role.name
 }
