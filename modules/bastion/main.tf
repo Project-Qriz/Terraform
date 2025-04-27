@@ -42,6 +42,8 @@ resource "aws_instance" "bastion" {
 
   vpc_security_group_ids = [aws_security_group.bastion.id]
 
+  iam_instance_profile = var.instance_profile_name != "" ? var.instance_profile_name : null
+
   user_data = <<-EOF
               #!/bin/bash
               # System update

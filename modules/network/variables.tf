@@ -25,3 +25,16 @@ variable "availability_zones" {
 variable "nat_instance_eni_id" {
   type = string
 }
+
+# Transit Gateway 관련 변수 추가
+variable "enable_tgw" {
+  description = "Transit Gateway 활성화 여부"
+  type        = bool
+  default     = false
+}
+
+variable "tgw_destination_cidr" {
+  description = "Transit Gateway를 통해 라우팅할 대상 CIDR"
+  type        = string
+  default     = ""
+}

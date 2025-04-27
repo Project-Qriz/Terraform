@@ -85,3 +85,40 @@ resource "aws_route_table_association" "private" {
   subnet_id = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
 }
+
+# Transit Gateway 리소스 (enable_tgw가 true인 경우에만 생성)
+resource "aws_ec2_transit_gateway" "tgw" {
+  count = var.enable_tgw ? 1 : 0
+  
+  description                     = "Transit Gateway for ${var.environment} environment"
+  default_route_table_association = "enable"
+  default_route_table_propagation = "enable"
+  
+  tags = {
+    Name        = "qriz-${var.environment}-tgw"
+    Environment = var.environment
+  }
+}
+
+# VPC에 대한 Transit Gateway 연결
+resource "aws_ec2_transit_gateway_vpc_attachment" "tgw_attachment" {
+  count = var.enable_tgw ? 1 : 0
+  
+  transit_gateway_id = aws_ec2_transit_gateway.tgw[0].id
+  vpc_id             = aws_vpc.main.id
+  subnet_ids         = aws_subnet.private[*].id
+  
+  tags = {
+    Name        = "qriz-${var.environment}-tgw-attachment"
+    Environment = var.environment
+  }
+}
+
+# 사용자 정의 라우팅이 필요한 경우 추가 라우트 설정 (Transit Gateway 사용 시)
+resource "aws_route" "tgw_route" {
+  count = var.enable_tgw && var.tgw_destination_cidr != "" ? 1 : 0
+  
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = var.tgw_destination_cidr
+  transit_gateway_id     = aws_ec2_transit_gateway.tgw[0].id
+}

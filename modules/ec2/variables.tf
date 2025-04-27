@@ -199,6 +199,9 @@ variable "flask_user_data" {
               systemctl enable docker
               systemctl start docker
               usermod -a -G docker ec2-user
+
+              # S3에서 모델 파일 다운로드 (환경별 접두사 제거)
+              aws s3 cp s3://qriz-model-data/models/latest/dkt_model.pth /home/ec2-user/app/
               
               # ECR 로그인
               aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 314146328505.dkr.ecr.ap-northeast-2.amazonaws.com

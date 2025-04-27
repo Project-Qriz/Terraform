@@ -37,3 +37,7 @@ output "spring_security_group_id" {
 output "flask_security_group_id" {
   value = aws_security_group.flask_sg.id
 }
+
+output "ec2_instance_profile_name" {
+  value = aws_iam_instance_profile.ec2_profile.name
+}

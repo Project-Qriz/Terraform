@@ -12,6 +12,10 @@ module "network" {
   private_subnets = var.private_subnets
   availability_zones = var.availability_zones
   nat_instance_eni_id = module.nat.nat_instance_eni_id
+
+  # Transit Gateway 설정
+  enable_tgw = var.enable_tgw
+  tgw_destination_cidr = var.tgw_destination_cidr
 }
 
 module "nat" {
@@ -60,6 +64,7 @@ module "bastion" {
   vpc_id = module.network.vpc_id
   public_subnet_id = module.network.public_subnet_ids[0]
   key_name = var.key_name
+  instance_profile_name = module.ec2.ec2_instance_profile_name
 }
 
 module "rds" {
@@ -91,5 +96,5 @@ module "security" {
 module "s3" {
   source = "../../modules/s3"
   
-  environment = var.environment
+  log_retention_days = var.log_retention_days
 }

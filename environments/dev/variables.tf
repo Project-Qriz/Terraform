@@ -37,3 +37,23 @@ variable "database_username" {
 variable "database_password" {
   type = string
 }
+
+# S3 로그 보존 기간 변수
+variable "log_retention_days" {
+  description = "Number of days to retain training logs in S3"
+  type        = number
+  default     = 30
+}
+
+# Transit Gateway 관련 변수
+variable "enable_tgw" {
+  description = "Enable Transit Gateway"
+  type        = bool
+  default     = true
+}
+
+variable "tgw_destination_cidr" {
+  description = "CIDR block for the destination network to route through Transit Gateway"
+  type        = string
+  default     = "10.0.0.0/8" # 다른 VPC들의 CIDR 범위를 포함하는 값
+}

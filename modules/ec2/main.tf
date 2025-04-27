@@ -335,3 +335,75 @@ resource "aws_iam_instance_profile" "ec2_profile" {
   name = "${var.environment}-ec2-profile"
   role = aws_iam_role.ec2_role.name
 }
+
+# S3 접근 정책 추가
+resource "aws_iam_policy" "s3_access_policy" {
+  name        = "${var.environment}-s3-access-policy"
+  description = "Policy for S3 access"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:ListBucket",
+          "s3:DeleteObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::qriz-model-data",
+          "arn:aws:s3:::qriz-model-data/*",
+          "arn:aws:s3:::qriz-data-storage",
+          "arn:aws:s3:::qriz-data-storage/*",
+          "arn:aws:s3:::qriz-training-logs",
+          "arn:aws:s3:::qriz-training-logs/*"
+        ]
+      }
+    ]
+  })
+}
+
+# S3 정책을 EC2 역할에 연결
+resource "aws_iam_role_policy_attachment" "s3_policy_attachment" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.s3_access_policy.arn
+}
+
+# CloudWatch 로그 액세스 권한 추가 (모델 학습용)
+resource "aws_iam_policy" "cloudwatch_policy" {
+  name        = "${var.environment}-cloudwatch-policy"
+  description = "Policy for CloudWatch access"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:PutMetricData",
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:ListMetrics"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# CloudWatch 정책을 EC2 역할에 연결
+resource "aws_iam_role_policy_attachment" "cloudwatch_policy_attachment" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.cloudwatch_policy.arn
+}
